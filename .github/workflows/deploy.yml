@@ -26,8 +26,8 @@ jobs:
           wget --mirror --page-requisites --adjust-extension --convert-links \
             --no-parent --restrict-file-names=windows --span-hosts \
             --domains=www.blocks3dpuzzle.com,blocks3dpuzzle.com \
-            --reject-regex '(\?replytocom=|wp-json|xmlrpc|/feed/|wp-login|\?p=|\?s=)' \
-            -e robots=off --wait=0.2 \
+            --reject-regex '(\?replytocom=|wp-json|xmlrpc|/feed/|wp-login|\?p=|\?s=|\?id=|com/.+www\.|viewtopic|forum|\.ru/|0pk\.me|borda\.|\?share=|\?like)' \
+            -e robots=off --tries=1 --timeout=15 \
             --user-agent="Mozilla/5.0 (migracion del propietario)" \
             https://www.blocks3dpuzzle.com/ || true
 
