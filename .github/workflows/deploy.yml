@@ -6,9 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -17,16 +15,13 @@ concurrency:
 jobs:
   copiar-y-publicar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Descargar copia estática de la web
         run: |
           wget --mirror --page-requisites --adjust-extension --convert-links \
             --no-parent --restrict-file-names=windows --span-hosts \
             --domains=www.blocks3dpuzzle.com,blocks3dpuzzle.com \
-            --reject-regex '(\?replytocom=|wp-json|xmlrpc|/feed/|wp-login|\?p=|\?s=|\?id=|com/.+www\.|viewtopic|forum|\.ru/|0pk\.me|borda\.|\?share=|\?like)' \
+            --reject-regex '(\?replytocom=|wp-json|xmlrpc|/feed/|wp-login|\?p=|\?s=|\?id=|com/.+www\.|viewtopic|forum|\.ru/|0pk\.me|borda\.|\?share=|\?like|/category/|/tag/|/author/|tienda-de-puzzles)' \
             -e robots=off --tries=1 --timeout=15 \
             --user-agent="Mozilla/5.0 (migracion del propietario)" \
             https://www.blocks3dpuzzle.com/ || true
@@ -36,14 +31,18 @@ jobs:
 
           mv www.blocks3dpuzzle.com _site
 
-          # Dominio personalizado para GitHub Pages
-          echo "www.blocks3dpuzzle.com" > _site/CNAME
+      - name: Quitar blog y tienda
+        run: |
+          rm -rf _site/category _site/tienda-de-puzzles _site/tag _site/author
 
-      - name: Subir el sitio
-        uses: actions/upload-pages-artifact@v3
+          # Quitar los enlaces de Blog y Tienda del menú de todas las páginas
+          find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/<li[^>]*>(?:(?!<\/li)(?!<li).)*?(?:category\/|tienda-de-puzzles)(?:(?!<\/li).)*?<\/li>//gs'
+
+          # Quitar submenús que hayan quedado vacíos
+          find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/<ul[^>]*>\s*<\/ul>//gs'
+
+      - name: Guardar y publicar en la rama gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: _site
-
-      - name: Publicar
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: _site
