@@ -41,6 +41,25 @@ jobs:
           # Quitar submenús que hayan quedado vacíos
           find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/<ul[^>]*>\s*<\/ul>//gs'
 
+          # Quitar el menú Contact
+          find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/<li[^>]*>(?:(?!<\/li)(?!<li).)*?(?:page_id=123|>Contact<)(?:(?!<\/li).)*?<\/li>//gs'
+
+          # Quitar flechas de submenús que ya no existen
+          find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/menu-item-has-children//g'
+
+          # Eliminar páginas sueltas: solo quedan portada, español y páginas legales
+          cd _site
+          for d in */ ; do
+            case "$d" in
+              wp-content/|wp-includes/|blocks-puzzle-3d/|privacy-policy/|politica-de-cookies/) ;;
+              *) rm -rf "$d" ;;
+            esac
+          done
+          cd ..
+
+          # Añadir correo de contacto al pie de todas las páginas
+          find _site -name '*.html' -print0 | xargs -0 perl -0pi -e 's/<\/body>/<div style="text-align:center;padding:16px;font-size:14px;background:#f0f0f0">Contacto: <a href="mailto:trendmobgames\@gmail.com">trendmobgames\@gmail.com<\/a><\/div><\/body>/'
+
       - name: Guardar y publicar en la rama gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
